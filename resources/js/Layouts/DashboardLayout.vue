@@ -2,6 +2,12 @@
 import Sidebar from "@/Components/Sidebar.vue";
 import TopBar from "@/Components/TopBar.vue";
 import { useToast } from "vue-toastification";
+import {usePage} from "@inertiajs/inertia-vue3";
+import { onBeforeUnmount } from 'vue'
+import { Inertia } from '@inertiajs/inertia'
+
+const page = usePage()
+const toast = useToast();
 
 const menu = [
   { name: "dashboard", label: "Dashboard", href: "/dashboard", icon: "bxs-dashboard" },
@@ -11,6 +17,20 @@ const menu = [
   { name: "tnote", label: "TNote", href: "/tnote", icon: "bx-square" },
   { name: "sales", label: "Sales", href: "/sales", icon: "bxs-bar-chart-alt-2" },
 ];
+
+const removeFinishedEventListener = Inertia.on('finish', () => {
+  if (page.props.value.flash.message) {
+    if (page.props.value.flash.message.status === 'success') {
+      toast.success(page.props.value.flash.message.message, {
+        timeout: 2000
+      })
+    } else {
+      toast.error(page.props.value.flash.message.message)
+    }
+  }
+})
+
+onBeforeUnmount(() => removeFinishedEventListener())
 
 </script>
 

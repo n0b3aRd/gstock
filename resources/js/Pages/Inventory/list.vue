@@ -1,6 +1,6 @@
 <script setup>
 import {getCurrentInstance as instance} from "vue";
-import {Head, Link} from "@inertiajs/inertia-vue3";
+import {Head, Link, usePage} from "@inertiajs/inertia-vue3";
 import DashboardLayout from "@/Layouts/DashboardLayout.vue";
 import PrimaryLink from "@/Components/PrimaryLink.vue";
 import SecondaryLink from "@/Components/SecondaryLink.vue";
@@ -14,6 +14,10 @@ proxy.$appState.parentSelection = null;
 proxy.$appState.elementName = "inventory";
 
 defineProps(['inventories'])
+
+
+// const page = usePage()
+// console.log(page.props.value.flash.message)
 
 function viewQty(inventory) {
   if (inventory.qty > inventory.reorder_point) {

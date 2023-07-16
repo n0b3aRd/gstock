@@ -43,12 +43,12 @@ class InventoryController extends Controller
             $item->save();
 
             DB::commit();
-            return redirect('inventory');
+            return redirect('inventory')->with('message', ['status' => 'success', 'message' => 'Record added successfully']);
 
         } catch (\Exception $e) {
             DB::rollBack();
             addErrorToLog($e);
-            dd($e->getMessage());
+            return redirect()->back()->with('message', ['status' => 'error', 'message' => 'Something went wrong']);
         }
     }
 
@@ -78,12 +78,12 @@ class InventoryController extends Controller
             $item->save();
 
             DB::commit();
-            return redirect('inventory')->with('message', 'asdfasfasdfasdf');
+            return redirect('inventory')->with('message', ['status' => 'success', 'message' => 'Record updated successfully']);
 
         } catch (\Exception $e) {
             DB::rollBack();
             addErrorToLog($e);
-            dd($e->getMessage());
+            return redirect()->back()->with('message', ['status' => 'error', 'message' => 'Something went wrong']);
         }
     }
 
@@ -95,10 +95,10 @@ class InventoryController extends Controller
                 $inventory->delete();
                 return redirect('inventory')->with('message', ['status' => 'success', 'message' => 'Record deleted successfully']);
             }
-            return redirect('inventory')->with('message', 'Item not found');
+            return redirect('inventory')->with('message', ['status' => 'error', 'message' => 'Item not found']);
         } catch (\Exception $e) {
             addErrorToLog($e);
-            return redirect('inventory')->with('message', 'Something went wrong');
+            return redirect('inventory')->with('message', ['status' => 'error', 'message' => 'Something went wrong']);
         }
     }
 }

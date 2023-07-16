@@ -78,7 +78,7 @@ class ProductCategoryController extends Controller
     {
         $is_have_products = Inventory::where('category_id', $product_category)->first();
         if ($is_have_products) {
-            return redirect(route('product-category.index'))->with('message', ['status' => 'error', 'message' => 'Remove inventory items before delete category']);
+            return redirect()->back()->with('message', ['status' => 'error', 'message' => 'Remove inventory items before delete category']);
         }
 
         try {
