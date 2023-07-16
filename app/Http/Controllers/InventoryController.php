@@ -13,8 +13,9 @@ class InventoryController extends Controller
 {
     public function index()
     {
+        $inventory = Inventory::with('category:id,name')->latest()->paginate(10);
         return Inertia::render('Inventory/list', [
-            'inventories' => InventoryResource::collection(Inventory::paginate(3))
+            'inventories' => InventoryResource::collection($inventory)
         ]);
     }
 
@@ -48,6 +49,56 @@ class InventoryController extends Controller
             DB::rollBack();
             addErrorToLog($e);
             dd($e->getMessage());
+        }
+    }
+
+    public function edit($inventory)
+    {
+        $inventory = Inventory::find($inventory);
+        $categories = ProductCategory::select('name', 'id')->get();
+        return Inertia::render('Inventory/create', [
+            'categories' => $categories,
+            'inventory' => $inventory
+        ]);
+    }
+
+    public function update(StoreInventoryRequest $request, $inventory)
+    {
+        $data = $request->validated();
+
+        DB::beginTransaction();
+        try {
+            $item = Inventory::find($inventory);
+            $item->code = $data['code'];
+            $item->name = $data['name'];
+            $item->category_id = $data['category_id'];
+            $item->qty = $data['qty'] ?? 0;
+            $item->reorder_point = $data['reorder_point'] ?? 0;
+            $item->price = $data['price'] ?? 0;
+            $item->save();
+
+            DB::commit();
+            return redirect('inventory')->with('message', 'asdfasfasdfasdf');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            addErrorToLog($e);
+            dd($e->getMessage());
+        }
+    }
+
+    public function destroy ($inventory)
+    {
+        try {
+            $inventory = Inventory::find($inventory);
+            if ($inventory) {
+                $inventory->delete();
+                return redirect('inventory')->with('message', ['status' => 'success', 'message' => 'Record deleted successfully']);
+            }
+            return redirect('inventory')->with('message', 'Item not found');
+        } catch (\Exception $e) {
+            addErrorToLog($e);
+            return redirect('inventory')->with('message', 'Something went wrong');
         }
     }
 }

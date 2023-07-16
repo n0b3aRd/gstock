@@ -1,6 +1,7 @@
 <script setup>
 import Sidebar from "@/Components/Sidebar.vue";
 import TopBar from "@/Components/TopBar.vue";
+import { useToast } from "vue-toastification";
 
 const menu = [
   { name: "dashboard", label: "Dashboard", href: "/dashboard", icon: "bxs-dashboard" },

@@ -1,16 +1,22 @@
 <script setup>
-import {getCurrentInstance as instance} from "vue";
-import {Head, Link, useForm} from "@inertiajs/inertia-vue3";
+import { onMounted, getCurrentInstance as instance, computed } from 'vue'
+import {Head, Link, useForm, usePage} from "@inertiajs/inertia-vue3";
 import DashboardLayout from "@/Layouts/DashboardLayout.vue";
+import SecondaryLink from "@/Components/SecondaryLink.vue";
 
 const {proxy} = instance();
 
 proxy.$appState.parentSelection = null;
 proxy.$appState.elementName = "inventory";
 
-defineProps(['categories'])
+const props = defineProps(['categories', 'inventory', 'message'])
+
+let hasId = computed(() => {
+  return Object.hasOwn(route().params, 'inventory')
+})
 
 const form = useForm({
+  id: null,
   code: null,
   name: null,
   category_id: null,
@@ -20,12 +26,30 @@ const form = useForm({
 })
 
 function submit() {
-  form.post('/inventory')
+  if (hasId.value) {
+    form.put('/inventory/'+form.id)
+  } else {
+    form.post('/inventory')
+  }
 }
 
 function handleInput(e) {
   form.clearErrors(e.target.name)
 }
+
+function setFieldValues(data) {
+  form.id = data.id
+  form.code = data.code
+  form.name = data.name
+  form.category_id = data.category_id
+  form.qty = data.qty
+  form.reorder_point = data.reorder_point
+  form.price = data.price
+}
+
+onMounted(() => {
+  if (hasId.value) setFieldValues(props.inventory)
+})
 
 </script>
 
@@ -37,14 +61,11 @@ function handleInput(e) {
       <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Inventory</h2>
       <div class="flex justify-end px-4 py-0">
         <div>
-          <Link :href="route('inventory')"
-              class="px-4 py-2 ml-2 text-sm font-medium leading-5 text-gray-700 transition-colors duration-150 bg-gray-100 border border-transparent rounded-lg active:bg-gray-100 hover:bg-gray-100 focus:outline-none focus:shadow-outline-gray dark:bg-gray-700 dark:text-gray-100">
-            Back to List
-          </Link>
+          <SecondaryLink :href="route('inventory')">Back to List</SecondaryLink>
         </div>
       </div>
 
-      <h4 class="mb-4 font-semibold text-gray-600 dark:text-gray-300">Add New Product</h4>
+      <h4 class="mb-4 font-semibold text-gray-600 dark:text-gray-300" v-html="hasId ? 'Update Product' : 'Add New Product'"></h4>
       <form @submit.prevent="submit">
         <div class="px-4 py-3 mb-4 bg-white rounded-lg shadow-md dark:bg-gray-800">
           <label class="block text-sm mt-2">
