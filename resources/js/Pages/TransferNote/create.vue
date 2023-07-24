@@ -10,31 +10,31 @@ const toast = useToast();
 const {proxy} = instance();
 
 proxy.$appState.parentSelection = null;
-proxy.$appState.elementName = "grn";
+proxy.$appState.elementName = "tnote";
 
-const props = defineProps(['grn', 'grnItems', 'products'])
+const props = defineProps(['tnote', 'tnoteItems', 'products'])
 
 let hasId = computed(() => {
-  return Object.hasOwn(route().params, 'grn')
+  return Object.hasOwn(route().params, 'tnote')
 })
 
-const grnItems = ref(props.grnItems)
+const tnoteItems = ref(props.tnoteItems)
 
 function addRow() {
-  grnItems.value.push({
-    'id': 'N'+grnItems.value.length,
+  tnoteItems.value.push({
+    'id': 'N'+tnoteItems.value.length,
     'product_id': null,
     'qty': 0,
     'price': 0
   })
 }
 
-function removeGrnItem(id) {
+function removeTnoteItem(id) {
   if (confirm('Are you sure?')) {
-    const index = grnItems.value.findIndex((grnItem) => grnItem.id === id);
+    const index = tnoteItems.value.findIndex((tnoteItem) => tnoteItem.id === id);
     if (index !== -1) {
-      grnItems.value.splice(index, 1);
-      toast.success("Item removed form GRN", {
+      tnoteItems.value.splice(index, 1);
+      toast.success("Item removed form transfer note", {
         timeout: 2000
       });
     }
@@ -45,7 +45,7 @@ function hasDuplicateProduct() {
   const productCounts = {};
 
   // Iterate through the array and update the count for each product
-  for (const obj of grnItems.value) {
+  for (const obj of tnoteItems.value) {
     const { product_id } = obj;
     if (productCounts[product_id]) {
       productCounts[product_id]++;
@@ -58,16 +58,30 @@ function hasDuplicateProduct() {
   return Object.values(productCounts).some(count => count > 1)
 }
 
+function getUnitPrice(tnoteItem) {
+  console.log(props.products)
+  const index = props.products.findIndex((product) => product.id === tnoteItem.product_id);
+  tnoteItem.price = props.products.at(index).price
+}
+
+function getAvailableQty(tnoteItem) {
+  const index = props.products.findIndex((product) => product.id === tnoteItem.product_id);
+  if (tnoteItem.qty > props.products.at(index).qty) {
+    tnoteItem.qty = props.products.at(index).qty
+    toast.error('This product only have '+props.products.at(index).qty+' items.')
+  }
+}
+
 const grandTotal = computed(() => {
-  let tot = grnItems.value.reduce((sum, grnItem) => sum + (grnItem.qty * grnItem.price), 0);
+  let tot = tnoteItems.value.reduce((sum, tnoteItem) => sum + (tnoteItem.qty * tnoteItem.price), 0);
   return new Intl.NumberFormat('en-US').format(parseFloat(tot).toFixed(2))
 });
 
 const form = useForm({
   id: null,
-  code: 'GNR____',
+  code: 'TN____',
   date: null,
-  grnItems: grnItems,
+  tnoteItems: tnoteItems,
 })
 
 function submit() {
@@ -78,21 +92,21 @@ function submit() {
   }
 
   if (hasId.value) {
-    form.put('/grn/' + form.id)
+    form.put('/tnote/' + form.id)
   } else {
-    form.post('/grn')
+    form.post('/tnote')
   }
 }
 
 
-function setFieldValues(grn) {
-  form.id = grn.data.id
-  form.code = grn.data.code
-  form.date = grn.data.date
+function setFieldValues(tnote) {
+  form.id = tnote.data.id
+  form.code = tnote.data.code
+  form.date = tnote.data.date
 }
 
 onMounted(() => {
-  if (hasId.value) setFieldValues(props.grn)
+  if (hasId.value) setFieldValues(props.tnote)
 })
 
 </script>
@@ -102,15 +116,15 @@ onMounted(() => {
 
   <DashboardLayout>
     <div class="container grid px-6 mx-auto">
-      <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Goods Received Note</h2>
+      <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Transfer Note</h2>
       <div class="flex justify-end px-4 py-0">
         <div>
-          <SecondaryLink :href="route('grn.index')">Back to List</SecondaryLink>
+          <SecondaryLink :href="route('tnote.index')">Back to List</SecondaryLink>
         </div>
       </div>
 
       <h4 class="mb-4 font-semibold text-gray-600 dark:text-gray-300"
-          v-html="hasId ? 'Update GRN' : 'Add New GRN'"></h4>
+          v-html="hasId ? 'Update Transfer Note' : 'Add New Transfer Note'"></h4>
       <form @submit.prevent="submit">
         <div class="px-4 py-3 mb-4 bg-white rounded-lg shadow-md dark:bg-gray-800">
           <div class="grid gap-6 mb-4 lg:grid-cols-2 xl:grid-cols-3">
@@ -122,9 +136,6 @@ onMounted(() => {
                     v-model="form.code"
                     readonly
                 >
-                <span class="text-xs text-red-600 dark:text-red-400" v-if="form.errors.code">{{
-                    form.errors.code
-                  }}</span>
               </label>
             </div>
             <div>
@@ -148,9 +159,6 @@ onMounted(() => {
                     v-model="grandTotal"
                     readonly
                 >
-                <span class="text-xs text-red-600 dark:text-red-400" v-if="form.errors.total">{{
-                    form.errors.total
-                  }}</span>
               </label>
             </div>
           </div>
@@ -166,14 +174,15 @@ onMounted(() => {
             </tr>
             </thead>
             <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
-            <tr v-for="grnItem in grnItems" :key="grnItem.id" class="text-gray-700 dark:text-gray-400">
+            <tr v-for="tnoteItem in tnoteItems" :key="tnoteItem.id" class="text-gray-700 dark:text-gray-400">
               <td class="px-4 py-3 text-sm">
                 <label class="block text-sm">
                   <select
                       class="block w-full mt-1 text-sm dark:text-gray-300 dark:border-gray-600 dark:bg-gray-700 form-select focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:focus:shadow-outline-gray"
                       name="category_id"
                       required
-                      v-model="grnItem.product_id"
+                      @change="getUnitPrice(tnoteItem)"
+                      v-model="tnoteItem.product_id"
                   >
                     <option v-for="product in products" :key="product.id" :value="product.id">
                       {{ product.name }}
@@ -187,28 +196,21 @@ onMounted(() => {
                       class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
                       type="number"
                       min="1"
+                      @change="getAvailableQty(tnoteItem)"
                       required
-                      v-model="grnItem.qty"
-                  >
-                </label>
-              </td>
-              <td class="px-4 py-3 text-sm">
-                <label class="block text-sm">
-                  <input
-                      class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                      type="number"
-                      min="1"
-                      required
-                      v-model="grnItem.price"
+                      v-model="tnoteItem.qty"
                   >
                 </label>
               </td>
               <td class="px-4 py-3 text-sm sm:text-right">
-                {{ new Intl.NumberFormat('en-US').format(parseFloat(grnItem.qty * grnItem.price).toFixed(2)) }}
+                {{ new Intl.NumberFormat('en-US').format(parseFloat(tnoteItem.price).toFixed(2)) }}
+              </td>
+              <td class="px-4 py-3 text-sm sm:text-right">
+                {{ new Intl.NumberFormat('en-US').format(parseFloat(tnoteItem.qty * tnoteItem.price).toFixed(2)) }}
               </td>
               <td class="px-4 py-3 text-center">
                 <div class="flex justify-center items-center space-x-4 text-sm">
-                  <button @click="removeGrnItem(grnItem.id)"
+                  <button @click="removeTnoteItem(tnoteItem.id)"
                           class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-red-600 rounded-lg dark:text-red-400 focus:outline-none focus:shadow-outline-gray"
                           aria-label="Delete"
                   >

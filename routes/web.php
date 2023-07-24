@@ -5,6 +5,9 @@ use App\Http\Controllers\GrnController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SalesNoteController;
+use App\Http\Controllers\ShopInventoryController;
+use App\Http\Controllers\TransferNoteController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -64,6 +67,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/grn/{grn}', [GrnController::class, 'update'])->name('grn.update');
     Route::delete('/grn/{grn}', [GrnController::class, 'destroy'])->name('grn.destroy');
 
+    //transfer note
+    Route::get('/tnote', [TransferNoteController::class, 'index'])->name('tnote.index');
+    Route::get('/tnote/create', [TransferNoteController::class, 'create'])->name('tnote.create');
+    Route::post('/tnote', [TransferNoteController::class, 'store'])->name('tnote.store');
+    Route::get('/tnote/{tnote}/edit', [TransferNoteController::class, 'edit'])->name('tnote.edit');
+    Route::put('/tnote/{tnote}', [TransferNoteController::class, 'update'])->name('tnote.update');
+    Route::delete('/tnote/{tnote}', [TransferNoteController::class, 'destroy'])->name('tnote.destroy');
+
+    //shop
+    Route::get('/shop', [ShopInventoryController::class, 'index'])->name('shop.index');
+    Route::get('/shop/create', [ShopInventoryController::class, 'create'])->name('shop.create');
+    Route::post('/shop', [ShopInventoryController::class, 'store'])->name('shop.store');
+    Route::get('/shop/{shop}/edit', [ShopInventoryController::class, 'edit'])->name('shop.edit');
+    Route::put('/shop/{shop}', [ShopInventoryController::class, 'update'])->name('shop.update');
+    Route::delete('/shop/{shop}', [ShopInventoryController::class, 'destroy'])->name('shop.destroy');
+
+    //sales
+    Route::get('/sales', [SalesNoteController::class, 'index'])->name('sales.index');
+    Route::get('/sales/create', [SalesNoteController::class, 'create'])->name('sales.create');
+    Route::post('/sales', [SalesNoteController::class, 'store'])->name('sales.store');
+    Route::get('/sales/{sale}/edit', [SalesNoteController::class, 'edit'])->name('sales.edit');
+    Route::put('/sales/{sale}', [SalesNoteController::class, 'update'])->name('sales.update');
+    Route::delete('/sales/{sale}', [SalesNoteController::class, 'destroy'])->name('sales.destroy');
 });
 
 

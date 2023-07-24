@@ -10,19 +10,19 @@ const toast = useToast();
 const {proxy} = instance();
 
 proxy.$appState.parentSelection = null;
-proxy.$appState.elementName = "grn";
+proxy.$appState.elementName = "sales";
 
-const props = defineProps(['grn', 'grnItems', 'products'])
+const props = defineProps(['sale', 'salesItems', 'products'])
 
 let hasId = computed(() => {
-  return Object.hasOwn(route().params, 'grn')
+  return Object.hasOwn(route().params, 'sale')
 })
 
-const grnItems = ref(props.grnItems)
+const salesItems = ref(props.salesItems)
 
 function addRow() {
-  grnItems.value.push({
-    'id': 'N'+grnItems.value.length,
+  salesItems.value.push({
+    'id': 'N'+salesItems.value.length,
     'product_id': null,
     'qty': 0,
     'price': 0
@@ -31,68 +31,59 @@ function addRow() {
 
 function removeGrnItem(id) {
   if (confirm('Are you sure?')) {
-    const index = grnItems.value.findIndex((grnItem) => grnItem.id === id);
+    const index = salesItems.value.findIndex((salesItem) => salesItem.id === id);
     if (index !== -1) {
-      grnItems.value.splice(index, 1);
-      toast.success("Item removed form GRN", {
+      salesItems.value.splice(index, 1);
+      toast.success("Item removed form Sales Note", {
         timeout: 2000
       });
     }
   }
 }
 
-function hasDuplicateProduct() {
-  const productCounts = {};
+function getUnitPrice(salesItem) {
+  const index = props.products.data.findIndex((product) => product.product_id === salesItem.product_id);
+  salesItem.price = props.products.data.at(index).product.price
+}
 
-  // Iterate through the array and update the count for each product
-  for (const obj of grnItems.value) {
-    const { product_id } = obj;
-    if (productCounts[product_id]) {
-      productCounts[product_id]++;
-    } else {
-      productCounts[product_id] = 1;
-    }
+function checkAvailableQty(salesItem) {
+  let sum_qty = salesItems.value.reduce((sum, item) => item.product_id === salesItem.product_id ? sum + item.qty : sum , 0);
+  const index = props.products.data.findIndex((product) => product.product_id === salesItem.product_id);
+  if (sum_qty > props.products.data.at(index).qty) {
+    toast.error('Insufficient Quantity. Store only have '+props.products.data.at(index).qty+' '+props.products.data.at(index).product.name+'(s)')
+    salesItem.qty = 0
+    return false
   }
-
-  // Check if any product has a count greater than 1
-  return Object.values(productCounts).some(count => count > 1)
 }
 
 const grandTotal = computed(() => {
-  let tot = grnItems.value.reduce((sum, grnItem) => sum + (grnItem.qty * grnItem.price), 0);
+  let tot = salesItems.value.reduce((sum, salesItem) => sum + (salesItem.qty * salesItem.price), 0);
   return new Intl.NumberFormat('en-US').format(parseFloat(tot).toFixed(2))
 });
 
 const form = useForm({
   id: null,
-  code: 'GNR____',
+  code: 'SN____',
   date: null,
-  grnItems: grnItems,
+  salesItems: salesItems,
 })
 
 function submit() {
-  //check for duplicate product ids
-  if (hasDuplicateProduct()) {
-    toast.error('Please merge or remove duplicate products to continue')
-    return false
-  }
-
   if (hasId.value) {
-    form.put('/grn/' + form.id)
+    form.put('/sales/' + form.id)
   } else {
-    form.post('/grn')
+    form.post('/sales')
   }
 }
 
-
-function setFieldValues(grn) {
-  form.id = grn.data.id
-  form.code = grn.data.code
-  form.date = grn.data.date
+function setFieldValues(sale) {
+  form.id = sale.data.id
+  form.code = sale.data.code
+  form.date = sale.data.date
 }
 
 onMounted(() => {
-  if (hasId.value) setFieldValues(props.grn)
+  if (hasId.value) setFieldValues(props.sale)
 })
 
 </script>
@@ -102,15 +93,15 @@ onMounted(() => {
 
   <DashboardLayout>
     <div class="container grid px-6 mx-auto">
-      <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Goods Received Note</h2>
+      <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Sales Note</h2>
       <div class="flex justify-end px-4 py-0">
         <div>
-          <SecondaryLink :href="route('grn.index')">Back to List</SecondaryLink>
+          <SecondaryLink :href="route('sales.index')">Back to List</SecondaryLink>
         </div>
       </div>
 
       <h4 class="mb-4 font-semibold text-gray-600 dark:text-gray-300"
-          v-html="hasId ? 'Update GRN' : 'Add New GRN'"></h4>
+          v-html="hasId ? 'Update Sales Note' : 'Add New Sales Note'"></h4>
       <form @submit.prevent="submit">
         <div class="px-4 py-3 mb-4 bg-white rounded-lg shadow-md dark:bg-gray-800">
           <div class="grid gap-6 mb-4 lg:grid-cols-2 xl:grid-cols-3">
@@ -166,17 +157,18 @@ onMounted(() => {
             </tr>
             </thead>
             <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
-            <tr v-for="grnItem in grnItems" :key="grnItem.id" class="text-gray-700 dark:text-gray-400">
+            <tr v-for="salesItem in salesItems" :key="salesItem.id" class="text-gray-700 dark:text-gray-400">
               <td class="px-4 py-3 text-sm">
                 <label class="block text-sm">
                   <select
                       class="block w-full mt-1 text-sm dark:text-gray-300 dark:border-gray-600 dark:bg-gray-700 form-select focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:focus:shadow-outline-gray"
                       name="category_id"
                       required
-                      v-model="grnItem.product_id"
+                      @change="getUnitPrice(salesItem)"
+                      v-model="salesItem.product_id"
                   >
-                    <option v-for="product in products" :key="product.id" :value="product.id">
-                      {{ product.name }}
+                    <option v-for="product in products.data" :key="product.product_id" :value="product.product_id">
+                      {{ product.product.name }}
                     </option>
                   </select>
                 </label>
@@ -188,7 +180,8 @@ onMounted(() => {
                       type="number"
                       min="1"
                       required
-                      v-model="grnItem.qty"
+                      @change="checkAvailableQty(salesItem)"
+                      v-model="salesItem.qty"
                   >
                 </label>
               </td>
@@ -199,16 +192,16 @@ onMounted(() => {
                       type="number"
                       min="1"
                       required
-                      v-model="grnItem.price"
+                      v-model="salesItem.price"
                   >
                 </label>
               </td>
               <td class="px-4 py-3 text-sm sm:text-right">
-                {{ new Intl.NumberFormat('en-US').format(parseFloat(grnItem.qty * grnItem.price).toFixed(2)) }}
+                {{ new Intl.NumberFormat('en-US').format(parseFloat(salesItem.qty * salesItem.price).toFixed(2)) }}
               </td>
               <td class="px-4 py-3 text-center">
                 <div class="flex justify-center items-center space-x-4 text-sm">
-                  <button @click="removeGrnItem(grnItem.id)"
+                  <button @click="removeGrnItem(salesItem.id)"
                           class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-red-600 rounded-lg dark:text-red-400 focus:outline-none focus:shadow-outline-gray"
                           aria-label="Delete"
                   >

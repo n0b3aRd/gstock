@@ -1,6 +1,6 @@
 <script setup>
 import {getCurrentInstance as instance} from "vue";
-import {Head, Link, usePage} from "@inertiajs/inertia-vue3";
+import {Head, Link} from "@inertiajs/inertia-vue3";
 import DashboardLayout from "@/Layouts/DashboardLayout.vue";
 import PrimaryLink from "@/Components/PrimaryLink.vue";
 import SecondaryLink from "@/Components/SecondaryLink.vue";
@@ -11,20 +11,9 @@ import TableFooter from "@/Components/TableFooter.vue";
 const {proxy} = instance();
 
 proxy.$appState.parentSelection = null;
-proxy.$appState.elementName = "inventory";
+proxy.$appState.elementName = "shop";
 
-defineProps(['inventories'])
-
-
-// const page = usePage()
-// console.log(page.props.value.flash.message)
-
-function viewQty(inventory) {
-  if (inventory.qty > inventory.reorder_point) {
-    return `<span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100">${inventory.qty}</span>`
-  }
-  return `<span class="px-2 py-1 font-semibold leading-tight text-red-600 bg-red-100 rounded-full dark:bg-red-600 dark:text-red-100">${inventory.qty}</span>`
-}
+defineProps(['shop_items'])
 </script>
 
 <template>
@@ -32,16 +21,10 @@ function viewQty(inventory) {
 
   <DashboardLayout>
     <div class="container grid px-6 mx-auto">
-      <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Inventory</h2>
+      <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Shop Inventory</h2>
       <div class="flex justify-end px-4 py-0">
         <div>
-          <SecondaryLink :href="route('product-category.index')">Manage Categories</SecondaryLink>
-        </div>
-        <div>
-          <SecondaryLink :href="route('grn.create')">New GNR</SecondaryLink>
-        </div>
-        <div>
-          <PrimaryLink :href="route('inventory.create')">New Item</PrimaryLink>
+          <PrimaryLink :href="route('shop.create')">New Item</PrimaryLink>
         </div>
       </div>
 
@@ -53,7 +36,7 @@ function viewQty(inventory) {
               <span class="text-gray-700 dark:text-gray-400">Code</span>
               <input
                   class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                  placeholder="Code">
+                  placeholder="Name">
             </label>
           </div>
           <div class="">
@@ -62,14 +45,6 @@ function viewQty(inventory) {
               <input
                   class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
                   placeholder="Name">
-            </label>
-          </div>
-          <div class="">
-            <label class="block text-sm">
-              <span class="text-gray-700 dark:text-gray-400">Category</span>
-              <input
-                  class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                  placeholder="Category">
             </label>
           </div>
         </div>
@@ -83,41 +58,37 @@ function viewQty(inventory) {
               <th class="px-4 py-3">Product</th>
               <th class="px-4 py-3">Category</th>
               <th class="px-4 py-3">Quantity</th>
-              <th class="px-4 py-3">Reorder Point</th>
-              <th class="px-4 py-3 text-center">Amount</th>
               <th class="px-4 py-3 text-center">Actions</th>
             </tr>
             </thead>
             <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
-            <tr v-for="inventory in inventories.data" class="text-gray-700 dark:text-gray-400">
+            <tr v-for="shop_item in shop_items.data" class="text-gray-700 dark:text-gray-400">
               <td class="px-4 py-3">
                 <div class="flex items-center text-sm">
                   <!-- Avatar with inset shadow -->
                   <div class="relative hidden w-8 h-8 mr-3 rounded-full md:block">
-                    <div class="object-cover w-full h-full rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center font-bold"><span>{{ inventory.name.charAt(0)}}</span></div>
+                    <div class="object-cover w-full h-full rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center font-bold"><span>{{ shop_item.product.name.charAt(0)}}</span></div>
                     <div class="absolute inset-0 rounded-full shadow-inner" aria-hidden="true"></div>
                   </div>
                   <div>
-                    <p class="font-semibold">{{ inventory.name }}</p>
-                    <p class="text-xs text-gray-600 dark:text-gray-400">{{ inventory.code }}</p>
+                    <p class="font-semibold">{{ shop_item.product.name }}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">{{ shop_item.product.code }}</p>
                   </div>
                 </div>
               </td>
-              <td class="px-4 py-3 text-sm">{{ inventory.category }}</td>
-              <td class="px-4 py-3 text-xs" v-html="viewQty(inventory)"></td>
-              <td class="px-4 py-3 text-sm">{{ inventory.reorder_point }}</td>
-              <td class="px-4 py-3 text-sm sm:text-right">Rs {{ new Intl.NumberFormat('en-US').format(parseFloat(inventory.price).toFixed(2)) }}</td>
+              <td class="px-4 py-3 text-sm">{{ shop_item.product.category }}</td>
+              <td class="px-4 py-3 text-sm">{{ shop_item.qty }}</td>
               <td class="px-4 py-3 text-center">
                 <div class="flex justify-center items-center space-x-4 text-sm">
-                  <TableEditButton :href="route('inventory.edit', inventory.id)"></TableEditButton>
-                  <TableDeleteButton :url="route('inventory.destroy', inventory.id)"></TableDeleteButton>
+                  <TableEditButton :href="route('shop.edit', shop_item.id)"></TableEditButton>
+                  <TableDeleteButton :url="route('shop.destroy', shop_item.id)"></TableDeleteButton>
                 </div>
               </td>
             </tr>
             </tbody>
           </table>
         </div>
-        <TableFooter :meta="inventories.meta"></TableFooter>
+        <TableFooter :meta="shop_items.meta"></TableFooter>
       </div>
     </div>
   </DashboardLayout>

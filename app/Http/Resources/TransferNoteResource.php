@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class InventoryResource extends JsonResource
+class TransferNoteResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,11 +17,8 @@ class InventoryResource extends JsonResource
         return [
             'id' => $this->id,
             'code' => $this->code,
-            'name' => $this->name,
-            'category' => $this->category->name,
-            'qty' => $this->qty,
-            'reorder_point' => $this->reorder_point,
-            'price' => $this->price,
+            'date' => $this->date->format('Y-m-d'),
+            'total' => number_format($this->total, 2),
         ];
     }
 }
