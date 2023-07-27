@@ -12,7 +12,11 @@ const {proxy} = instance();
 proxy.$appState.parentSelection = null;
 proxy.$appState.elementName = "sales";
 
-const props = defineProps(['salesItems', 'products'])
+const props = defineProps(['sale', 'salesItems', 'products'])
+
+let hasId = computed(() => {
+  return Object.hasOwn(route().params, 'sale')
+})
 
 const salesItems = ref(props.salesItems)
 
@@ -42,15 +46,15 @@ function getUnitPrice(salesItem) {
   salesItem.price = props.products.data.at(index).product.price
 }
 
-function checkAvailableQty(salesItem) {
-  let sum_qty = salesItems.value.reduce((sum, item) => item.product_id === salesItem.product_id ? sum + item.qty : sum , 0);
-  const index = props.products.data.findIndex((product) => product.product_id === salesItem.product_id);
-  if (sum_qty > props.products.data.at(index).qty) {
-    toast.error('Insufficient Quantity. Store only have '+props.products.data.at(index).qty+' '+props.products.data.at(index).product.name+'(s)')
-    salesItem.qty = 0
-    return false
-  }
-}
+// function checkAvailableQty(salesItem) {
+//   let sum_qty = salesItems.value.reduce((sum, item) => item.product_id === salesItem.product_id ? sum + item.qty : sum , 0);
+//   const index = props.products.data.findIndex((product) => product.product_id === salesItem.product_id);
+//   if (sum_qty > props.products.data.at(index).qty) {
+//     toast.error('Insufficient Quantity. Store only have '+props.products.data.at(index).qty+' '+props.products.data.at(index).product.name+'(s)')
+//     salesItem.qty = 0
+//     return false
+//   }
+// }
 
 const grandTotal = computed(() => {
   let tot = salesItems.value.reduce((sum, salesItem) => sum + (salesItem.qty * salesItem.price), 0);
@@ -65,8 +69,19 @@ const form = useForm({
 })
 
 function submit() {
-    form.post('/sales')
+  form.put('/sales/' + form.id)
 }
+
+function setFieldValues(sale) {
+  form.id = sale.id
+  form.code = sale.code
+  form.date = new Date(sale.date).toISOString().slice(0, 10)
+  form.total = sale.total
+}
+
+onMounted(() => {
+  if (hasId.value) setFieldValues(props.sale)
+})
 
 </script>
 
@@ -162,7 +177,6 @@ function submit() {
                       type="number"
                       min="1"
                       required
-                      @change="checkAvailableQty(salesItem)"
                       v-model="salesItem.qty"
                   >
                 </label>
