@@ -1,6 +1,6 @@
 <script setup>
-import {getCurrentInstance as instance} from "vue";
-import {Head, Link, usePage} from "@inertiajs/inertia-vue3";
+import {computed, getCurrentInstance as instance} from "vue";
+import {Head, Link, useForm, usePage} from "@inertiajs/inertia-vue3";
 import DashboardLayout from "@/Layouts/DashboardLayout.vue";
 import PrimaryLink from "@/Components/PrimaryLink.vue";
 import SecondaryLink from "@/Components/SecondaryLink.vue";
@@ -13,11 +13,7 @@ const {proxy} = instance();
 proxy.$appState.parentSelection = null;
 proxy.$appState.elementName = "inventory";
 
-defineProps(['inventories'])
-
-
-// const page = usePage()
-// console.log(page.props.value.flash.message)
+defineProps(['inventories', 'categories'])
 
 function viewQty(inventory) {
   if (inventory.qty > inventory.reorder_point) {
@@ -25,6 +21,17 @@ function viewQty(inventory) {
   }
   return `<span class="px-2 py-1 font-semibold leading-tight text-red-600 bg-red-100 rounded-full dark:bg-red-600 dark:text-red-100">${inventory.qty}</span>`
 }
+
+const form = useForm({
+  code: route().params?.code,
+  name: route().params?.name,
+  category_id: route().params?.category_id,
+})
+
+function submit() {
+  form.get('/inventory')
+}
+
 </script>
 
 <template>
@@ -47,12 +54,14 @@ function viewQty(inventory) {
 
       <h6 class="mb-4 font-semibold text-gray-600 dark:text-gray-300">Search Data</h6>
       <div class="px-4 py-3 mb-4 bg-white rounded-lg dark:bg-gray-800">
+        <form @submit.prevent="submit">
         <div class="grid gap-6 mb-4 md:grid-cols-2 xl:grid-cols-4">
           <div class="">
             <label class="block text-sm">
               <span class="text-gray-700 dark:text-gray-400">Code</span>
               <input
                   class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                  v-model="form.code"
                   placeholder="Code">
             </label>
           </div>
@@ -61,18 +70,36 @@ function viewQty(inventory) {
               <span class="text-gray-700 dark:text-gray-400">Name</span>
               <input
                   class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                  v-model="form.name"
                   placeholder="Name">
             </label>
           </div>
           <div class="">
             <label class="block text-sm">
-              <span class="text-gray-700 dark:text-gray-400">Category</span>
-              <input
-                  class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                  placeholder="Category">
+                <span class="text-gray-700 dark:text-gray-400">
+                  Category
+                </span>
+              <select class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                      v-model="form.category_id"
+                      name="category_id"
+              >
+                <option value="">Select Category</option>
+                <option v-for="category in categories" :key="category.id" :value="category.id">
+                  {{ category.name }}
+                </option>
+              </select>
             </label>
           </div>
+          <div class="">
+            <button
+                class="px-4 mt-6 py-2 text-sm font-medium block w-full leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple"
+                type="submit"
+            >
+              Search
+            </button>
+          </div>
         </div>
+        </form>
       </div>
       <!-- With actions -->
       <div class="w-full mb-8 overflow-hidden rounded-lg shadow-xs">

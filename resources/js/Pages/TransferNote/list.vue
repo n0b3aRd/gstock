@@ -1,6 +1,6 @@
 <script setup>
 import {getCurrentInstance as instance} from "vue";
-import {Head, Link} from "@inertiajs/inertia-vue3";
+import {Head, Link, useForm} from "@inertiajs/inertia-vue3";
 import DashboardLayout from "@/Layouts/DashboardLayout.vue";
 import PrimaryLink from "@/Components/PrimaryLink.vue";
 import SecondaryLink from "@/Components/SecondaryLink.vue";
@@ -14,6 +14,16 @@ proxy.$appState.parentSelection = null;
 proxy.$appState.elementName = "tnote";
 
 defineProps(['tnotes'])
+
+const form = useForm({
+  code: route().params?.code,
+  date: route().params?.date,
+})
+
+function submit() {
+  form.get('/tnote')
+}
+
 </script>
 
 <template>
@@ -30,24 +40,36 @@ defineProps(['tnotes'])
 
       <h6 class="mb-4 font-semibold text-gray-600 dark:text-gray-300">Search Data</h6>
       <div class="px-4 py-3 mb-4 bg-white rounded-lg dark:bg-gray-800">
-        <div class="grid gap-6 mb-4 md:grid-cols-2 xl:grid-cols-4">
-          <div class="">
-            <label class="block text-sm">
-              <span class="text-gray-700 dark:text-gray-400">Code</span>
-              <input
-                  class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                  placeholder="Code">
-            </label>
+        <form @submit.prevent="submit">
+          <div class="grid gap-6 mb-4 md:grid-cols-2 xl:grid-cols-4">
+            <div class="">
+              <label class="block text-sm">
+                <span class="text-gray-700 dark:text-gray-400">Code</span>
+                <input
+                    class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                    v-model="form.code"
+                    placeholder="Code">
+              </label>
+            </div>
+            <div class="">
+              <label class="block text-sm">
+                <span class="text-gray-700 dark:text-gray-400">Date</span>
+                <input
+                    class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                    v-model="form.date"
+                    placeholder="Name" type="date">
+              </label>
+            </div>
+            <div class="">
+              <button
+                  class="px-4 mt-6 py-2 text-sm font-medium block w-full leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple"
+                  type="submit"
+              >
+                Search
+              </button>
+            </div>
           </div>
-          <div class="">
-            <label class="block text-sm">
-              <span class="text-gray-700 dark:text-gray-400">Date</span>
-              <input
-                  class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
-                  placeholder="Name" type="date">
-            </label>
-          </div>
-        </div>
+        </form>
       </div>
       <!-- With actions -->
       <div class="w-full mb-8 overflow-hidden rounded-lg shadow-xs">

@@ -6,16 +6,31 @@ use App\Http\Requests\StoreInventoryRequest;
 use App\Http\Resources\InventoryResource;
 use App\Models\Inventory;
 use App\Models\ProductCategory;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class InventoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $inventory = Inventory::with('category:id,name')->latest()->paginate(10);
+        $inventory = Inventory::with('category:id,name')
+            ->when(request('code'), function ($q, $code) {
+                return $q->where('code', 'LIKE', '%'.$code.'%');
+            })
+            ->when(request('name'), function ($q, $name) {
+                return $q->where('name', 'LIKE', '%'.$name.'%');
+            })
+            ->when(request('category_id'), function ($q, $category_id) {
+                return $q->where('category_id', $category_id);
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+        $categories = ProductCategory::select('name', 'id')->get();
         return Inertia::render('Inventory/list', [
-            'inventories' => InventoryResource::collection($inventory)
+            'inventories' => InventoryResource::collection($inventory),
+            'categories' => $categories,
         ]);
     }
 

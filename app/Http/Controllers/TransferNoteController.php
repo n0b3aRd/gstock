@@ -15,7 +15,16 @@ class TransferNoteController extends Controller
 {
     public function index()
     {
-        $tnotes = TransferNote::latest()->paginate(10);
+        $tnotes = TransferNote::query()
+            ->when(request('code'), function ($q, $code) {
+                return $q->where('code', 'LIKE', '%'.$code.'%');
+            })
+            ->when(request('date'), function ($q, $date) {
+                return $q->where('date', 'LIKE', '%'.$date.'%');
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
         return Inertia::render('TransferNote/list', [
             'tnotes' => TransferNoteResource::collection($tnotes)
         ]);

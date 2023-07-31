@@ -22,7 +22,16 @@ class SalesNoteController extends Controller
      */
     public function index()
     {
-        $sales = SalesNote::latest()->paginate(10);
+        $sales = SalesNote::query()
+            ->when(request('code'), function ($q, $code) {
+                return $q->where('code', 'LIKE', '%'.$code.'%');
+            })
+            ->when(request('date'), function ($q, $date) {
+                return $q->where('date', 'LIKE', '%'.$date.'%');
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
         return Inertia::render('SalesNote/list', [
             'sales' => SalesResource::collection($sales)
         ]);
@@ -168,7 +177,7 @@ class SalesNoteController extends Controller
             $grand_tot = 0;
 
             foreach ($request['salesItems'] as $salesItem) {
-                $old_item = $old_sale_note_items->where('product_id', $salesItem['product_id'])->first();
+                $old_item = $old_sale_note_items->where('id', $salesItem['id'])->first();
                 if ($old_item) {
                     $diff = $old_item->qty - $salesItem['qty'];
 
@@ -185,7 +194,7 @@ class SalesNoteController extends Controller
                     $old_item->save();
 
                     // add to common array
-                    $common_in_both[] = $salesItem['product_id'];
+                    $common_in_both[] = $salesItem['id'];
                 } else {
                     //get item from shop
                     $shop_item = ShopInventory::where('product_id', $salesItem['product_id'])->first();
@@ -213,7 +222,7 @@ class SalesNoteController extends Controller
                 $grand_tot += ($salesItem['qty'] * $salesItem['price']);
             }
 
-            $removed_items = $old_sale_note_items->whereNotIn('product_id', $common_in_both);
+            $removed_items = $old_sale_note_items->whereNotIn('id', $common_in_both);
 
             foreach ($removed_items as $item) {
                 //add to shop inventory

@@ -11,11 +11,11 @@ const toast = useToast();
 
 const menu = [
   { name: "dashboard", label: "Dashboard", href: "/dashboard", icon: "bxs-dashboard" },
-  { name: "inventory", label: "Inventory", href: "/inventory", icon: "bxs-bar-chart-alt-2" },
-  { name: "grn", label: "GRN", href: "/grn", icon: "bx-square" },
-  { name: "shop", label: "Shop", href: "/shop", icon: "bx-table" },
-  { name: "tnote", label: "TNote", href: "/tnote", icon: "bx-square" },
-  { name: "sales", label: "Sales", href: "/sales", icon: "bxs-bar-chart-alt-2" },
+  { name: "inventory", label: "Inventory", href: "/inventory", icon: "bx bxs-package" },
+  { name: "grn", label: "GRN", href: "/grn", icon: "bx bxs-cart-add" },
+  { name: "shop", label: "Shop", href: "/shop", icon: "bx bxs-store" },
+  { name: "tnote", label: "TNote", href: "/tnote", icon: "bx bx-transfer" },
+  { name: "sales", label: "Sales", href: "/sales", icon: "bx bx-money-withdraw" },
 ];
 
 const removeFinishedEventListener = Inertia.on('finish', () => {

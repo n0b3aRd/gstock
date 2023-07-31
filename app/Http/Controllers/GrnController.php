@@ -20,7 +20,16 @@ class GrnController extends Controller
      */
     public function index()
     {
-        $gnrs = Grn::latest()->paginate(10);
+        $gnrs = Grn::query()
+            ->when(request('code'), function ($q, $code) {
+            return $q->where('code', 'LIKE', '%'.$code.'%');
+            })
+            ->when(request('date'), function ($q, $date) {
+                return $q->where('date', 'LIKE', '%'.$date.'%');
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
         return Inertia::render('Grn/list', [
             'grns' => GrnResource::collection($gnrs)
         ]);
