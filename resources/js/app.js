@@ -1,5 +1,6 @@
 import "./bootstrap";
 import "../css/app.css";
+import "../css/vue-multiselect.css";
 
 import { createApp, h, reactive } from "vue";
 import { createInertiaApp } from "@inertiajs/inertia-vue3";
@@ -8,6 +9,7 @@ import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { ZiggyVue } from "../../vendor/tightenco/ziggy/dist/vue.m";
 import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
+import VueMultiselect from 'vue-multiselect'
 
 const appName = window.document.getElementsByTagName("title")[0]?.innerText || "Laravel";
 
@@ -22,6 +24,7 @@ createInertiaApp({
 
     myApp.config.globalProperties.$appState = reactive({ isSideMenuOpen: false, isDark: false, parentSelection: null, elementName: null });
 
+    myApp.component('VueMultiselect', VueMultiselect);
     myApp.mount(el);
     return myApp;
   },

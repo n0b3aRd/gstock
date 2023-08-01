@@ -83,7 +83,7 @@ function submit() {
                       v-model="form.category_id"
                       name="category_id"
               >
-                <option value="">Select Category</option>
+                <option value="">All Category</option>
                 <option v-for="category in categories" :key="category.id" :value="category.id">
                   {{ category.name }}
                 </option>

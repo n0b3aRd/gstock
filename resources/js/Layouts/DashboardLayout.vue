@@ -16,6 +16,7 @@ const menu = [
   { name: "shop", label: "Shop", href: "/shop", icon: "bx bxs-store" },
   { name: "tnote", label: "TNote", href: "/tnote", icon: "bx bx-transfer" },
   { name: "sales", label: "Sales", href: "/sales", icon: "bx bx-money-withdraw" },
+  { name: "suppliers", label: "Suppliers", href: "/suppliers", icon: "bx bxs-user-pin" },
 ];
 
 const removeFinishedEventListener = Inertia.on('finish', () => {

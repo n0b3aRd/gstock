@@ -14,8 +14,15 @@ class ProductCategoryController extends Controller
 {
     public function index()
     {
+        $categories = ProductCategory::query()
+            ->when(request('name'), function ($q, $name) {
+                return $q->where('name', 'LIKE', '%'.$name.'%');
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
         return Inertia::render('ProductCategory/list', [
-            'categories' => ProductCategoryResource::collection(ProductCategory::latest()->paginate(10))
+            'categories' => ProductCategoryResource::collection($categories)
         ]);
     }
 

@@ -11,18 +11,19 @@ import TableFooter from "@/Components/TableFooter.vue";
 const {proxy} = instance();
 
 proxy.$appState.parentSelection = null;
-proxy.$appState.elementName = "inventory";
+proxy.$appState.elementName = "supplier";
 
-defineProps(['categories'])
+defineProps(['inventory', 'suppliers'])
 
 const form = useForm({
   name: route().params?.name,
+  phone: route().params?.phone,
+  product_id: route().params?.product_id,
 })
 
 function submit() {
-  form.get('/product-category')
+  form.get('/suppliers')
 }
-
 </script>
 
 <template>
@@ -30,13 +31,10 @@ function submit() {
 
   <DashboardLayout>
     <div class="container grid px-6 mx-auto">
-      <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Product Categories</h2>
+      <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Suppliers</h2>
       <div class="flex justify-end px-4 py-0">
         <div>
-          <SecondaryLink :href="route('inventory')">Back to Inventory</SecondaryLink>
-        </div>
-        <div>
-          <PrimaryLink :href="route('product-category.create')">New Category</PrimaryLink>
+          <PrimaryLink :href="route('suppliers.create')">New Suppliers</PrimaryLink>
         </div>
       </div>
 
@@ -51,6 +49,31 @@ function submit() {
                     class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
                     v-model="form.name"
                     placeholder="Name">
+              </label>
+            </div>
+            <div class="">
+              <label class="block text-sm">
+                <span class="text-gray-700 dark:text-gray-400">Phone</span>
+                <input
+                    class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                    v-model="form.phone"
+                    placeholder="Phone">
+              </label>
+            </div>
+            <div class="">
+              <label class="block text-sm">
+                <span class="text-gray-700 dark:text-gray-400">
+                  Product
+                </span>
+                <select class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                        v-model="form.product_id"
+                        name="category_id"
+                >
+                  <option value="">All Product</option>
+                  <option v-for="product in inventory" :key="product.id" :value="product.id">
+                    {{ product.name }}
+                  </option>
+                </select>
               </label>
             </div>
             <div class="">
@@ -70,24 +93,30 @@ function submit() {
           <table class="w-full whitespace-no-wrap">
             <thead>
             <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
-              <th class="px-4 py-3">Category</th>
+              <th class="px-4 py-3">Name</th>
+              <th class="px-4 py-3">Phone</th>
+              <th class="px-4 py-3" width="40%">Products</th>
               <th class="px-4 py-3 text-center">Actions</th>
             </tr>
             </thead>
             <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
-            <tr v-for="category in categories.data" class="text-gray-700 dark:text-gray-400">
-              <td class="px-4 py-3 text-sm">{{ category.name }}</td>
+            <tr v-for="supplier in suppliers.data" class="text-gray-700 dark:text-gray-400">
+              <td class="px-4 py-3 text-sm">{{ supplier.name }}</td>
+              <td class="px-4 py-3 text-sm">{{ supplier.phone }}</td>
+              <td class="px-4 py-3 text-sm">
+                <span v-for="item in supplier.items" class="px-2 py-1 text-xs leading-tight text-gray-700 bg-gray-100 rounded-full dark:text-gray-100 dark:bg-gray-700">{{ item.name }}</span>
+              </td>
               <td class="px-4 py-3 text-center">
                 <div class="flex justify-center items-center space-x-4 text-sm">
-                  <TableEditButton :href="route('product-category.edit', category.id)"></TableEditButton>
-                  <TableDeleteButton :url="route('product-category.destroy', category.id)"></TableDeleteButton>
+                  <TableEditButton :href="route('suppliers.edit', supplier.id)"></TableEditButton>
+                  <TableDeleteButton :url="route('suppliers.destroy', supplier.id)"></TableDeleteButton>
                 </div>
               </td>
             </tr>
             </tbody>
           </table>
         </div>
-        <TableFooter :meta="categories.meta"></TableFooter>
+        <TableFooter :meta="suppliers.meta"></TableFooter>
       </div>
     </div>
   </DashboardLayout>
